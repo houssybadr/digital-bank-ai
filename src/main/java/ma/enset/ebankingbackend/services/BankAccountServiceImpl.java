@@ -15,6 +15,8 @@ import ma.enset.ebankingbackend.repositories.BankAccountRepository;
 import ma.enset.ebankingbackend.repositories.CustomerRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,24 +36,28 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final AccountOperationRepository operationRepository;
     private final BankAccountMapperImpl mapper;
 
+    private String getCurrentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return "SYSTEM";
+        }
+        return auth.getName();
+    }
+
     // ── Customers ──────────────────────────────────────────────────────────
 
     @Override
     public CustomerDTO saveCustomer(CustomerDTO customerDTO) {
-        log.info("Saving customer: {}", customerDTO.getName());
+        log.info("Saving customer: {} by {}", customerDTO.getName(), getCurrentUsername());
         Customer customer = mapper.fromCustomerDTO(customerDTO);
-        Customer saved = customerRepository.save(customer);
-        return mapper.fromCustomer(saved);
+        return mapper.fromCustomer(customerRepository.save(customer));
     }
 
     @Override
     public CustomerDTO updateCustomer(CustomerDTO customerDTO) throws CustomerNotFoundException {
-        log.info("Updating customer id: {}", customerDTO.getId());
         customerRepository.findById(customerDTO.getId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found: " + customerDTO.getId()));
-        Customer customer = mapper.fromCustomerDTO(customerDTO);
-        Customer saved = customerRepository.save(customer);
-        return mapper.fromCustomer(saved);
+        return mapper.fromCustomer(customerRepository.save(mapper.fromCustomerDTO(customerDTO)));
     }
 
     @Override
@@ -70,8 +76,7 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public List<CustomerDTO> listCustomers() {
-        return customerRepository.findAll()
-                .stream().map(mapper::fromCustomer).collect(Collectors.toList());
+        return customerRepository.findAll().stream().map(mapper::fromCustomer).collect(Collectors.toList());
     }
 
     @Override
@@ -87,7 +92,6 @@ public class BankAccountServiceImpl implements BankAccountService {
             throws CustomerNotFoundException {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found: " + customerId));
-
         CurrentAccount account = new CurrentAccount();
         account.setId(UUID.randomUUID().toString());
         account.setBalance(initialBalance);
@@ -96,10 +100,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         account.setCurrency("MAD");
         account.setCustomer(customer);
         account.setOverDraft(overDraft);
-
-        CurrentAccount saved = bankAccountRepository.save(account);
-        log.info("Current account created: {}", saved.getId());
-        return mapper.fromCurrentBankAccount(saved);
+        return mapper.fromCurrentBankAccount(bankAccountRepository.save(account));
     }
 
     @Override
@@ -107,7 +108,6 @@ public class BankAccountServiceImpl implements BankAccountService {
             throws CustomerNotFoundException {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found: " + customerId));
-
         SavingAccount account = new SavingAccount();
         account.setId(UUID.randomUUID().toString());
         account.setBalance(initialBalance);
@@ -116,10 +116,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         account.setCurrency("MAD");
         account.setCustomer(customer);
         account.setInterestRate(interestRate);
-
-        SavingAccount saved = bankAccountRepository.save(account);
-        log.info("Saving account created: {}", saved.getId());
-        return mapper.fromSavingBankAccount(saved);
+        return mapper.fromSavingBankAccount(bankAccountRepository.save(account));
     }
 
     @Override
@@ -153,21 +150,15 @@ public class BankAccountServiceImpl implements BankAccountService {
             throws BankAccountNotFoundException, BalanceNotSufficientException {
         BankAccount account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new BankAccountNotFoundException("Account not found: " + accountId));
-
         double allowedBalance = account.getBalance();
         if (account instanceof CurrentAccount ca) allowedBalance += ca.getOverDraft();
-
         if (allowedBalance < amount)
             throw new BalanceNotSufficientException("Insufficient balance for account: " + accountId);
 
-        AccountOperation operation = AccountOperation.builder()
-                .operationDate(new Date())
-                .amount(amount)
-                .type(OperationType.DEBIT)
-                .description(description)
-                .bankAccount(account)
-                .build();
-        operationRepository.save(operation);
+        operationRepository.save(AccountOperation.builder()
+                .operationDate(new Date()).amount(amount)
+                .type(OperationType.DEBIT).description(description)
+                .performedBy(getCurrentUsername()).bankAccount(account).build());
         account.setBalance(account.getBalance() - amount);
         bankAccountRepository.save(account);
     }
@@ -178,14 +169,10 @@ public class BankAccountServiceImpl implements BankAccountService {
         BankAccount account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new BankAccountNotFoundException("Account not found: " + accountId));
 
-        AccountOperation operation = AccountOperation.builder()
-                .operationDate(new Date())
-                .amount(amount)
-                .type(OperationType.CREDIT)
-                .description(description)
-                .bankAccount(account)
-                .build();
-        operationRepository.save(operation);
+        operationRepository.save(AccountOperation.builder()
+                .operationDate(new Date()).amount(amount)
+                .type(OperationType.CREDIT).description(description)
+                .performedBy(getCurrentUsername()).bankAccount(account).build());
         account.setBalance(account.getBalance() + amount);
         bankAccountRepository.save(account);
     }
@@ -220,11 +207,8 @@ public class BankAccountServiceImpl implements BankAccountService {
         dto.setCurrentPage(page);
         dto.setPageSize(size);
         dto.setTotalPages(accountOperations.getTotalPages());
-        dto.setAccountOperationDTOs(
-                accountOperations.getContent().stream()
-                        .map(mapper::fromAccountOperation)
-                        .collect(Collectors.toList())
-        );
+        dto.setAccountOperationDTOs(accountOperations.getContent().stream()
+                .map(mapper::fromAccountOperation).collect(Collectors.toList()));
         return dto;
     }
 }

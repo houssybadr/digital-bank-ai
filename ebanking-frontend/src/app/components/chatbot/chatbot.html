@@ -1,0 +1,60 @@
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header bg-primary text-white d-flex align-items-center gap-2">
+        <i class="bi bi-robot fs-4"></i>
+        <div>
+          <h5 class="mb-0">Assistant Bancaire IA</h5>
+          <small>Propulsé par GPT-4o mini + RAG</small>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="card-body" style="height: 450px; overflow-y: auto; background: #f8f9fa;" id="chatBox">
+        <div *ngFor="let msg of messages" class="mb-3"
+             [class.text-end]="msg.role === 'user'">
+          <div class="d-inline-block p-3 rounded-3 shadow-sm"
+               [class.bg-primary]="msg.role === 'user'"
+               [class.text-white]="msg.role === 'user'"
+               [class.bg-white]="msg.role === 'bot'"
+               style="max-width: 75%;">
+            <div *ngIf="msg.role === 'bot'" class="mb-1">
+              <i class="bi bi-robot me-1 text-primary"></i><strong>Assistant</strong>
+            </div>
+            <div>{{ msg.text }}</div>
+            <div class="mt-1">
+              <small [class.text-white-50]="msg.role === 'user'"
+                     [class.text-muted]="msg.role === 'bot'">
+                {{ msg.time | date:'HH:mm' }}
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div *ngIf="loading" class="mb-3">
+          <div class="d-inline-block p-3 rounded-3 bg-white shadow-sm">
+            <i class="bi bi-robot me-1 text-primary"></i>
+            <span class="text-muted fst-italic">En train de répondre...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="card-footer">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Posez votre question bancaire..."
+                 [(ngModel)]="userInput" (keyup)="onKeyUp($event)" [disabled]="loading">
+          <button class="btn btn-primary" (click)="sendMessage()" [disabled]="!userInput.trim() || loading">
+            <i class="bi bi-send"></i>
+          </button>
+        </div>
+        <div class="mt-2">
+          <small class="text-muted">
+            Exemples : "Quel est le solde de Hassan ?" | "Combien de comptes existent ?" | "Statistiques des opérations"
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

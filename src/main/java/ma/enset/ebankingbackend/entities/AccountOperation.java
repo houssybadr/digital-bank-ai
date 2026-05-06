@@ -28,6 +28,8 @@ public class AccountOperation {
 
     private String description;
 
+    private String performedBy;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_account_id")
     private BankAccount bankAccount;

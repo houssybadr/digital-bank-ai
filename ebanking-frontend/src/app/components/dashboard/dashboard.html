@@ -1,0 +1,115 @@
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border text-primary"></div>
+  <p class="mt-2">Chargement des statistiques...</p>
+</div>
+
+<div *ngIf="!loading && stats">
+  <!-- KPI Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3 mb-3">
+      <div class="card text-white bg-primary">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fs-2 fw-bold">{{ stats.totalCustomers }}</div>
+            <div>Clients</div>
+          </div>
+          <i class="bi bi-people fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card text-white bg-success">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fs-2 fw-bold">{{ stats.totalAccounts }}</div>
+            <div>Comptes</div>
+          </div>
+          <i class="bi bi-wallet2 fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card text-white bg-warning">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fs-2 fw-bold">{{ stats.totalOperations }}</div>
+            <div>Opérations</div>
+          </div>
+          <i class="bi bi-arrow-left-right fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card text-white bg-info">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fs-5 fw-bold">{{ stats.totalCreditAmount | number:'1.0-0' }}</div>
+            <div>Total Crédits (MAD)</div>
+          </div>
+          <i class="bi bi-graph-up-arrow fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="row">
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-header bg-dark text-white">
+          <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Opérations par type</h6>
+        </div>
+        <div class="card-body">
+          <canvas #opsChart></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-header bg-dark text-white">
+          <h6 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i>Types de comptes</h6>
+        </div>
+        <div class="card-body">
+          <canvas #accountsChart></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-header bg-dark text-white">
+          <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Volumes (MAD)</h6>
+        </div>
+        <div class="card-body">
+          <canvas #amountsChart></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Table -->
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+      <h6 class="mb-0"><i class="bi bi-table me-2"></i>Résumé</h6>
+    </div>
+    <div class="card-body">
+      <div class="row text-center">
+        <div class="col-md-3">
+          <div class="text-danger fs-4 fw-bold">{{ stats.totalDebitOperations }}</div>
+          <small class="text-muted">Opérations Débit</small>
+        </div>
+        <div class="col-md-3">
+          <div class="text-success fs-4 fw-bold">{{ stats.totalCreditOperations }}</div>
+          <small class="text-muted">Opérations Crédit</small>
+        </div>
+        <div class="col-md-3">
+          <div class="text-primary fs-4 fw-bold">{{ stats.currentAccountCount }}</div>
+          <small class="text-muted">Comptes Courants</small>
+        </div>
+        <div class="col-md-3">
+          <div class="text-success fs-4 fw-bold">{{ stats.savingAccountCount }}</div>
+          <small class="text-muted">Comptes Épargne</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
