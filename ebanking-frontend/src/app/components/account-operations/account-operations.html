@@ -1,0 +1,140 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4><i class="bi bi-clock-history me-2"></i>Opérations du Compte</h4>
+  <a routerLink="/accounts" class="btn btn-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Retour
+  </a>
+</div>
+
+<div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+<div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+<!-- Account Info -->
+<div class="card mb-3" *ngIf="account">
+  <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <small class="text-muted d-block">ID : <code>{{ account.id }}</code></small>
+      <small class="text-muted d-block">Client : {{ account.customerDTO?.name }}</small>
+    </div>
+    <div class="text-center">
+      <span class="badge" [class.bg-primary]="account.type==='CurrentAccount'" [class.bg-success]="account.type==='SavingAccount'">
+        {{ account.type === 'CurrentAccount' ? 'Compte Courant' : 'Compte Épargne' }}
+      </span>
+    </div>
+    <div class="text-end">
+      <div class="fs-4 fw-bold text-success">{{ account.balance | number:'1.2-2' }} {{ account.currency }}</div>
+      <small class="text-muted">Solde actuel</small>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Operation Form -->
+  <div class="col-md-5 mb-3">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h6 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>Nouvelle Opération</h6>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="operationForm" (ngSubmit)="executeOperation()">
+          <div class="mb-3">
+            <label class="form-label">Type</label>
+            <select class="form-select" formControlName="operationType">
+              <option value="DEBIT">DÉBIT</option>
+              <option value="CREDIT">CRÉDIT</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Montant (MAD)</label>
+            <input type="number" class="form-control" formControlName="amount" min="1">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-control" formControlName="description">
+          </div>
+          <button type="submit" class="btn btn-primary w-100" [disabled]="operationForm.invalid">
+            <i class="bi bi-check-circle me-1"></i>Exécuter
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Transfer Form -->
+    <div class="card mt-3">
+      <div class="card-header bg-warning">
+        <h6 class="mb-0"><i class="bi bi-send me-2"></i>Virement</h6>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="transferForm" (ngSubmit)="executeTransfer()">
+          <div class="mb-3">
+            <label class="form-label">Compte Destination</label>
+            <input type="text" class="form-control" formControlName="accountDestination" placeholder="ID du compte">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Montant (MAD)</label>
+            <input type="number" class="form-control" formControlName="amount" min="1">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-control" formControlName="description">
+          </div>
+          <button type="submit" class="btn btn-warning w-100" [disabled]="transferForm.invalid">
+            <i class="bi bi-send me-1"></i>Virer
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Table -->
+  <div class="col-md-7 mb-3">
+    <div class="card">
+      <div class="card-header bg-dark text-white">
+        <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Historique des Opérations</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0 align-middle">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="accountHistory">
+              <tr *ngFor="let op of accountHistory.accountOperationDTOs">
+                <td><small>{{ op.operationDate | date:'dd/MM/yy HH:mm' }}</small></td>
+                <td>
+                  <span class="badge" [class.badge-debit]="op.type==='DEBIT'" [class.badge-credit]="op.type==='CREDIT'">
+                    {{ op.type }}
+                  </span>
+                </td>
+                <td [class.text-danger]="op.type==='DEBIT'" [class.text-success]="op.type==='CREDIT'">
+                  <strong>{{ op.amount | number:'1.2-2' }}</strong>
+                </td>
+                <td><small>{{ op.description }}</small></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer d-flex justify-content-between align-items-center" *ngIf="accountHistory">
+        <small class="text-muted">Page {{ currentPage + 1 }} / {{ accountHistory.totalPages }}</small>
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 0">
+              <button class="page-link" (click)="goToPage(currentPage - 1)">«</button>
+            </li>
+            <li class="page-item" *ngFor="let p of pages" [class.active]="p === currentPage">
+              <button class="page-link" (click)="goToPage(p)">{{ p + 1 }}</button>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage >= accountHistory.totalPages - 1">
+              <button class="page-link" (click)="goToPage(currentPage + 1)">»</button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>

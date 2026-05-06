@@ -1,0 +1,56 @@
+<div class="card">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0"><i class="bi bi-people me-2"></i>Gestion des Clients</h5>
+    <a routerLink="/customers/new" class="btn btn-light btn-sm">
+      <i class="bi bi-plus-circle me-1"></i>Nouveau Client
+    </a>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <div class="input-group mb-3">
+      <input type="text" class="form-control" placeholder="Rechercher un client..."
+             [(ngModel)]="keyword" (keyup.enter)="searchCustomers()">
+      <button class="btn btn-outline-primary" (click)="searchCustomers()">
+        <i class="bi bi-search"></i>
+      </button>
+      <button class="btn btn-outline-secondary" (click)="keyword=''; loadCustomers()">
+        <i class="bi bi-x-circle"></i>
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of customers">
+            <td>{{ c.id }}</td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.email }}</td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-info me-1" (click)="viewAccounts(c.id)" title="Voir comptes">
+                <i class="bi bi-wallet2"></i>
+              </button>
+              <a [routerLink]="['/customers/edit', c.id]" class="btn btn-sm btn-warning me-1" title="Modifier">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <button class="btn btn-sm btn-danger" (click)="deleteCustomer(c.id)" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="customers.length === 0">
+            <td colspan="4" class="text-center text-muted">Aucun client trouvé</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

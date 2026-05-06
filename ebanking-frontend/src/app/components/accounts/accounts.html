@@ -1,0 +1,52 @@
+<div class="card">
+  <div class="card-header bg-success text-white">
+    <h5 class="mb-0"><i class="bi bi-wallet2 me-2"></i>Tous les Comptes Bancaires</h5>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>ID Compte</th>
+            <th>Client</th>
+            <th>Solde</th>
+            <th>Statut</th>
+            <th>Date création</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let acc of accounts">
+            <td>
+              <span class="badge" [class.bg-primary]="acc.type==='CurrentAccount'" [class.bg-success]="acc.type==='SavingAccount'">
+                {{ acc.type === 'CurrentAccount' ? 'Courant' : 'Épargne' }}
+              </span>
+            </td>
+            <td><code>{{ acc.id | slice:0:12 }}...</code></td>
+            <td>{{ acc.customerDTO?.name }}</td>
+            <td class="text-success fw-bold">{{ acc.balance | number:'1.2-2' }} {{ acc.currency }}</td>
+            <td>
+              <span class="badge"
+                [class.bg-success]="acc.status==='ACTIVATED'"
+                [class.bg-secondary]="acc.status==='CREATED'"
+                [class.bg-danger]="acc.status==='SUSPENDED'">
+                {{ acc.status }}
+              </span>
+            </td>
+            <td>{{ acc.createdAt | date:'dd/MM/yyyy' }}</td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-primary" (click)="viewOperations(acc.id)">
+                <i class="bi bi-clock-history"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="accounts.length === 0">
+            <td colspan="7" class="text-center text-muted">Aucun compte trouvé</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

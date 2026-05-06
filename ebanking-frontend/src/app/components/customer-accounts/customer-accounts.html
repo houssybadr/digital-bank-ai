@@ -1,0 +1,48 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 *ngIf="customer">
+    <i class="bi bi-wallet2 me-2"></i>Comptes de <strong>{{ customer.name }}</strong>
+  </h4>
+  <a routerLink="/customers" class="btn btn-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Retour
+  </a>
+</div>
+
+<div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+<div class="row">
+  <div class="col-md-6 mb-3" *ngFor="let acc of accounts">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center"
+           [class.bg-primary]="acc.type === 'CurrentAccount'"
+           [class.bg-success]="acc.type === 'SavingAccount'"
+           [class.text-white]="true">
+        <span>
+          <i class="bi bi-credit-card me-2"></i>
+          {{ acc.type === 'CurrentAccount' ? 'Compte Courant' : 'Compte Épargne' }}
+        </span>
+        <span class="badge bg-light text-dark">{{ acc.status }}</span>
+      </div>
+      <div class="card-body">
+        <p class="mb-1"><small class="text-muted">ID :</small> <code>{{ acc.id }}</code></p>
+        <p class="mb-1"><small class="text-muted">Solde :</small>
+          <strong class="text-success">{{ acc.balance | number:'1.2-2' }} {{ acc.currency }}</strong>
+        </p>
+        <p class="mb-1" *ngIf="acc.overDraft !== undefined">
+          <small class="text-muted">Découvert :</small> {{ acc.overDraft | number:'1.2-2' }} {{ acc.currency }}
+        </p>
+        <p class="mb-1" *ngIf="acc.interestRate !== undefined">
+          <small class="text-muted">Taux :</small> {{ acc.interestRate }}%
+        </p>
+        <p class="mb-0"><small class="text-muted">Créé le :</small> {{ acc.createdAt | date:'dd/MM/yyyy' }}</p>
+      </div>
+      <div class="card-footer text-end">
+        <button class="btn btn-sm btn-outline-primary" (click)="viewOperations(acc.id)">
+          <i class="bi bi-clock-history me-1"></i>Opérations
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="col-12" *ngIf="accounts.length === 0">
+    <div class="alert alert-info">Aucun compte trouvé pour ce client.</div>
+  </div>
+</div>
